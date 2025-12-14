@@ -1,29 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
+import { wordsToSymbols } from "@/lib/pictograms";
 import { GoogleGenAI } from "@google/genai";
 
 const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export async function POST(request: NextRequest) {
   try {
-    const { selectedWords } = await request.json();
+    const { selectedWords, conversationHistory = [] } = await request.json();
 
-    if (!selectedWords || selectedWords.length === 0) {
+    if (
+      (!selectedWords || selectedWords.length === 0) &&
+      conversationHistory.length === 0
+    ) {
       return NextResponse.json({ words: [] });
     }
 
+    // Build conversation history context (now an array of sentences)
+    let historyContext = "";
+    if (conversationHistory.length > 0) {
+      historyContext = `Phrases précédentes dites par l'utilisateur:
+${conversationHistory.map((sentence: string, i: number) => `${i + 1}. "${sentence}"`).join("\n")}
+
+`;
+    }
+
+    // Current message context
+    const currentContext =
+      selectedWords.length > 0
+        ? `Mots actuellement sélectionnés: ${selectedWords.join(", ")}`
+        : "L'utilisateur commence un nouveau message.";
+
     const response = await genai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: `Tu aides avec un tableau de CAA (Communication Améliorée et Alternative) en français.
           
-L'utilisateur a déjà sélectionné ces mots/symboles dans l'ordre: ${selectedWords.join(", ")}
+${historyContext}${currentContext}
 
-Basé sur ce message partiel, suggère exactement 16 mots clés en français qui seraient les plus susceptibles de venir ensuite ou d'être utiles pour compléter sa pensée.
+Basé sur le contexte de la conversation et les mots sélectionnés, suggère exactement 16 mots clés en français qui seraient les plus susceptibles de venir ensuite ou d'être utiles pour compléter sa pensée.
 
 Retourne UNIQUEMENT une liste JSON de 16 éléments simples en français, sans explications.`,
     });
 
     // Parse the response
     const content = response.text ?? "";
+    console.log("[Gemini: suggest-words]", content);
     let words: string[] = [];
 
     try {
@@ -40,16 +60,13 @@ Retourne UNIQUEMENT une liste JSON de 16 éléments simples en français, sans e
       }
     }
 
-    // Ensure we have exactly 16 words
-    words = words.slice(0, 16);
+    const symbols = wordsToSymbols(words);
 
-    console.log("Words:", words);
-
-    return NextResponse.json({ words });
+    return NextResponse.json({ symbols });
   } catch (error) {
-    console.error("Error getting AI suggestions:", error);
+    console.error("Error fetching symbols:", error);
     return NextResponse.json(
-      { error: "Failed to get suggestions" },
+      { error: "Failed to fetch symbols" },
       { status: 500 }
     );
   }

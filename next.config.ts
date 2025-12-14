@@ -5,23 +5,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**.opensymbols.org",
+        hostname: "static.arasaac.org",
       },
       {
         protocol: "https",
-        hostname: "d18vdu4p71yber.cloudfront.net",
-      },
-      {
-        protocol: "https",
-        hostname: "s3.amazonaws.com",
-      },
-      {
-        protocol: "http",
-        hostname: "**.arasaac.org",
-      },
-      {
-        protocol: "https",
-        hostname: "**.arasaac.org",
+        hostname: "api.arasaac.org",
       },
     ],
   },

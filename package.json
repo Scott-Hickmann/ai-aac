@@ -9,12 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@cartesia/cartesia-js": "^2.2.9",
     "@google/genai": "^1.33.0",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-slot": "^1.2.4",
+    "@tanstack/react-query": "^5.90.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.561.0",
+    "minisearch": "^7.2.0",
     "next": "16.0.10",
     "openai": "^6.10.0",
     "react": "19.2.1",

@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { CartesiaClient } from "@cartesia/cartesia-js";
 
 const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+const cartesia = new CartesiaClient({ apiKey: process.env.CARTESIA_API_KEY! });
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // Use Gemini to rephrase icons into a full sentence
     const geminiResponse = await genai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: `Tu es chargé de comprendre ce qu'un patient sans capacités de parole essaie de dire. Il utilise un tableau de CAA (Communication Améliorée et Alternative).
 
 Il a cliqué sur les icônes suivantes dans l'ordre: "${selectedWords.join(", ")}"
@@ -22,40 +24,46 @@ Génère la phrase la plus probable pour ce qu'il essaie de dire. Retourne UNIQU
     });
 
     const sentence = geminiResponse.text?.trim() ?? selectedWords.join(" ");
-    console.log("Generated sentence:", sentence);
+    console.log("[Gemini: rephrase-icons]", sentence);
 
-    // Call ElevenLabs API to generate speech
-    const voiceId = "KS86D70D80LXhwxvWQr3"; // Lily - French voice
-    const elevenLabsResponse = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "xi-api-key": process.env.ELEVENLABS_API_KEY!,
-        },
-        body: JSON.stringify({
-          text: sentence,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-          },
-        }),
-      }
-    );
+    // Call Cartesia API to generate speech with streaming
+    const voiceId = "4849a5ff-c22d-425e-a3e1-eef4794b74e5";
+    console.log("Calling Cartesia TTS...");
 
-    if (!elevenLabsResponse.ok) {
-      const error = await elevenLabsResponse.text();
-      console.error("ElevenLabs error:", error);
-      return new Response("Failed to generate speech", { status: 500 });
-    }
+    const audioStream = await cartesia.tts.bytes({
+      modelId: "sonic-3",
+      transcript: sentence,
+      voice: {
+        mode: "id",
+        id: voiceId,
+      },
+      language: "fr",
+      outputFormat: {
+        container: "mp3",
+        bitRate: 128000,
+        sampleRate: 44100,
+      },
+    });
 
-    // Stream the audio response back to the client
-    return new Response(elevenLabsResponse.body, {
+    console.log("Streaming Cartesia response...");
+
+    // Create a ReadableStream from the async iterable using pull-based approach
+    const iterator = audioStream[Symbol.asyncIterator]();
+    const webStream = new ReadableStream({
+      async pull(controller) {
+        const { value, done } = await iterator.next();
+        if (done) {
+          controller.close();
+        } else {
+          controller.enqueue(value);
+        }
+      },
+    });
+
+    return new Response(webStream, {
       headers: {
         "Content-Type": "audio/mpeg",
-        "Transfer-Encoding": "chunked",
+        "X-Generated-Sentence": encodeURIComponent(sentence),
       },
     });
   } catch (error) {
@@ -63,4 +71,3 @@ Génère la phrase la plus probable pour ce qu'il essaie de dire. Retourne UNIQU
     return new Response("Internal server error", { status: 500 });
   }
 }
-

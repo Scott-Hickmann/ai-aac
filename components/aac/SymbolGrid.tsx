@@ -5,6 +5,7 @@ import { Symbol } from "@/types/symbol";
 import { SymbolCard } from "./SymbolCard";
 
 interface SymbolGridProps {
+  isStarterSymbols: boolean;
   symbols: Symbol[];
   loading: boolean;
   error: string | null;
@@ -31,6 +32,7 @@ function ErrorMessage({ message }: { message: string }) {
 }
 
 export function SymbolGrid({
+  isStarterSymbols,
   symbols,
   loading,
   error,
@@ -41,10 +43,10 @@ export function SymbolGrid({
     <main className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-black tracking-tight">Tableau CAA</h1>
-        <Button onClick={onRefresh} disabled={loading} variant="outline">
+        {!isStarterSymbols && <Button onClick={onRefresh} disabled={loading} variant="outline">
           <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
           Nouveaux Symboles
-        </Button>
+        </Button>}
       </div>
 
       {error && <ErrorMessage message={error} />}
