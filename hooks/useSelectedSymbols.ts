@@ -14,7 +14,7 @@ export function useSelectedSymbols() {
   const addSymbol = useCallback((symbol: Symbol) => {
     setSelectedSymbols((prev) => [
       ...prev,
-      { ...symbol, id: `${symbol.id}-${Date.now()}` },
+      { ...symbol, key: `${symbol.key}-${Date.now()}` },
     ]);
   }, []);
 

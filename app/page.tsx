@@ -27,7 +27,7 @@ export default function Home() {
   } = useSelectedSymbols();
 
   const { symbols, loading, error, refetch } = useSymbols(
-    selectedSymbols.map((s) => s.label),
+    selectedSymbols,
     conversationHistory
   );
 

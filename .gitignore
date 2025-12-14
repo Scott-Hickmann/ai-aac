@@ -40,3 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 !.env.example
+
+# pictobert
+pictobert/models/
+pictobert/.venv/
+__pycache__/
+*.pyc

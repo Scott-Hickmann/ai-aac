@@ -10,10 +10,10 @@ export interface ArasaacPictogram {
 }
 
 export interface Symbol {
-  id: string;
-  name: string;
-  imageUrl: string;
+  key: string;
+  wordSense: string;
   label: string;
+  imageUrl: string;
   pictogram: ArasaacPictogram;
 }
 

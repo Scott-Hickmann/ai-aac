@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { suggestQueries, suggestSymbols } from "@/lib/symbolQueries";
+import { suggestSymbolsWithPictoBERT } from "@/lib/pictobert";
+import type { Symbol } from "@/types/symbol";
 
 export async function POST(request: NextRequest) {
   try {
-    const { selectedWords, conversationHistory = [] } = await request.json();
+    const { selectedSymbols = [], conversationHistory = [] } =
+      (await request.json()) as {
+        selectedSymbols?: Symbol[];
+        conversationHistory?: string[];
+      };
 
-    if (
-      (!selectedWords || selectedWords.length === 0) &&
-      conversationHistory.length === 0
-    ) {
+    if (selectedSymbols.length === 0 && conversationHistory.length === 0) {
       return NextResponse.json({ symbols: [] });
     }
 
-    const queries = await suggestQueries({ selectedWords, conversationHistory });
-    const symbols = suggestSymbols(queries);
-
+    console.log("[Suggest] Using PictoBERT");
+    const symbols = await suggestSymbolsWithPictoBERT(selectedSymbols);
     return NextResponse.json({ symbols });
   } catch (error) {
     console.error("Error fetching symbols:", error);

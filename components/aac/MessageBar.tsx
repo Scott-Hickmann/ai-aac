@@ -43,7 +43,7 @@ export function MessageBar({
               ) : (
                 selectedSymbols.map((symbol, index) => (
                   <SelectedSymbol
-                    key={symbol.id}
+                    key={symbol.key}
                     symbol={symbol}
                     onRemove={() => onRemoveSymbol(index)}
                     showLabel={showLabels}

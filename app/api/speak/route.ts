@@ -19,14 +19,8 @@ export async function POST(request: NextRequest) {
 
     // Build context from full symbol data
     const symbolsContext = selectedSymbols
-      .map((s) => {
-        if (!s.pictogram?.keywords) {
-          return `"${s.label}"`;
-        }
-        const keywords = s.pictogram.keywords.map((k) => k.keyword).join(", ");
-        return `"${s.label}" (mots-clés: ${keywords})`;
-      })
-      .join(" → ");
+      .map((s) => s.wordSense)
+      .join(" ");
 
     // Use Gemini to rephrase icons into a full sentence
     const geminiResponse = await genai.models.generateContent({
@@ -35,12 +29,14 @@ export async function POST(request: NextRequest) {
 
 Il a cliqué sur les icônes suivantes dans l'ordre: ${symbolsContext}
 
-Génère la phrase la plus probable pour ce qu'il essaie de dire. Retourne UNIQUEMENT la phrase, sans guillemets ni explications.`,
+Génère la phrase en français la plus probable pour ce qu'il essaie de dire. Retourne UNIQUEMENT la phrase, sans guillemets ni explications.`,
     });
 
     const sentence =
-      geminiResponse.text?.trim() ??
-      selectedSymbols.map((s) => s.label).join(" ");
+      geminiResponse.text?.trim();
+    if (!sentence) {
+      return new Response("No sentence generated", { status: 500 });
+    }
     console.log("[Gemini: rephrase-icons]", sentence);
 
     // Call Cartesia API to generate speech with streaming

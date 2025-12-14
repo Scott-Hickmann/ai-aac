@@ -9,18 +9,18 @@ interface SuggestResponse {
 }
 
 async function fetchSuggestions(
-  selectedWords: string[],
+  selectedSymbols: Symbol[],
   conversationHistory: string[]
 ): Promise<Symbol[]> {
   const isStarterSymbols =
-    selectedWords.length === 0 && conversationHistory.length === 0;
+    selectedSymbols.length === 0;
 
   const response = await fetch(
     isStarterSymbols ? "/api/starter-symbols" : "/api/suggest",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ selectedWords, conversationHistory }),
+      body: JSON.stringify({ selectedSymbols }),
     }
   );
 
@@ -34,13 +34,15 @@ async function fetchSuggestions(
 }
 
 export function useSymbols(
-  selectedWords: string[],
+  selectedSymbols: Symbol[],
   conversationHistory: string[]
 ) {
+  // Use symbol IDs for query key to properly detect changes
+  const symbolWordSenses = selectedSymbols.map((s) => s.wordSense);
+
   const query = useQuery({
-    // Only selectedWords in key - conversationHistory changes shouldn't trigger refetch
-    queryKey: ["suggestions", selectedWords, conversationHistory],
-    queryFn: () => fetchSuggestions(selectedWords, conversationHistory),
+    queryKey: ["suggestions", symbolWordSenses, conversationHistory],
+    queryFn: () => fetchSuggestions(selectedSymbols, conversationHistory),
   });
 
   return {

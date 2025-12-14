@@ -64,10 +64,10 @@ export function SymbolGrid({
       {loading ? (
         <SkeletonGrid />
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-6 gap-4">
           {symbols.map((symbol) => (
             <SymbolCard
-              key={`${symbol.id}-${symbol.label}`}
+              key={symbol.key}
               symbol={symbol}
               onClick={() => onSymbolClick(symbol)}
               showLabel={showLabels}
