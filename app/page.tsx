@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   MessageBar,
   SymbolGrid,
@@ -10,6 +11,7 @@ import { useSymbols } from "@/hooks/useSymbols";
 import { useSelectedSymbols } from "@/hooks/useSelectedSymbols";
 
 export default function Home() {
+  const [showLabels, setShowLabels] = useState(false);
   const {
     selectedSymbols,
     conversationHistory,
@@ -37,6 +39,7 @@ export default function Home() {
         onSpeak={speakSelection}
         onClear={clearSelection}
         isSpeaking={isSpeaking}
+        showLabels={showLabels}
       />
 
       {pendingSentence ? (
@@ -55,6 +58,8 @@ export default function Home() {
           error={error}
           onSymbolClick={addSymbol}
           onRefresh={refetch}
+          showLabels={showLabels}
+          onToggleLabels={() => setShowLabels(!showLabels)}
         />
       )}
 

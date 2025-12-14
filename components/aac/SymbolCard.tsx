@@ -6,9 +6,10 @@ import { Symbol } from "@/types/symbol";
 interface SymbolCardProps {
   symbol: Symbol;
   onClick: () => void;
+  showLabel?: boolean;
 }
 
-export function SymbolCard({ symbol, onClick }: SymbolCardProps) {
+export function SymbolCard({ symbol, onClick, showLabel = true }: SymbolCardProps) {
   return (
     <Card
       onClick={onClick}
@@ -18,7 +19,10 @@ export function SymbolCard({ symbol, onClick }: SymbolCardProps) {
       )}
     >
       <CardContent className="h-full p-4 flex flex-col items-center justify-center gap-3">
-        <div className="relative w-full flex-1 flex items-center justify-center">
+        <div className={cn(
+          "relative w-full flex items-center justify-center",
+          showLabel ? "flex-1" : "h-full"
+        )}>
           <Image
             src={symbol.imageUrl}
             alt={symbol.label}
@@ -28,9 +32,11 @@ export function SymbolCard({ symbol, onClick }: SymbolCardProps) {
             unoptimized
           />
         </div>
-        <p className="text-base sm:text-lg font-bold text-center leading-tight">
-          {symbol.label}
-        </p>
+        {showLabel && (
+          <p className="text-base sm:text-lg font-bold text-center leading-tight">
+            {symbol.label}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

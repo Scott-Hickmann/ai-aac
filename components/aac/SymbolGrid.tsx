@@ -1,4 +1,4 @@
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Symbol } from "@/types/symbol";
@@ -11,6 +11,8 @@ interface SymbolGridProps {
   error: string | null;
   onSymbolClick: (symbol: Symbol) => void;
   onRefresh: () => void;
+  showLabels: boolean;
+  onToggleLabels: () => void;
 }
 
 function SkeletonGrid() {
@@ -38,15 +40,23 @@ export function SymbolGrid({
   error,
   onSymbolClick,
   onRefresh,
+  showLabels,
+  onToggleLabels,
 }: SymbolGridProps) {
   return (
     <main className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-black tracking-tight">Tableau CAA</h1>
-        {!isStarterSymbols && <Button onClick={onRefresh} disabled={loading} variant="outline">
-          <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
-          Nouveaux Symboles
-        </Button>}
+        <div className="flex items-center gap-2">
+          <Button onClick={onToggleLabels} variant="outline" title={showLabels ? "Masquer le texte" : "Afficher le texte"}>
+            {showLabels ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            <span className="hidden sm:inline">{showLabels ? "Masquer texte" : "Afficher texte"}</span>
+          </Button>
+          {!isStarterSymbols && <Button onClick={onRefresh} disabled={loading} variant="outline">
+            <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
+            Nouveaux Symboles
+          </Button>}
+        </div>
       </div>
 
       {error && <ErrorMessage message={error} />}
@@ -60,6 +70,7 @@ export function SymbolGrid({
               key={`${symbol.id}-${symbol.label}`}
               symbol={symbol}
               onClick={() => onSymbolClick(symbol)}
+              showLabel={showLabels}
             />
           ))}
         </div>

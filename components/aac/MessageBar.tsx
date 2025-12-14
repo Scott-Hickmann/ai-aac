@@ -11,6 +11,7 @@ interface MessageBarProps {
   onSpeak: () => void;
   onClear: () => void;
   isSpeaking?: boolean;
+  showLabels?: boolean;
 }
 
 export function MessageBar({
@@ -19,6 +20,7 @@ export function MessageBar({
   onSpeak,
   onClear,
   isSpeaking = false,
+  showLabels = true,
 }: MessageBarProps) {
   const hasSymbols = selectedSymbols.length > 0;
 
@@ -44,6 +46,7 @@ export function MessageBar({
                     key={symbol.id}
                     symbol={symbol}
                     onRemove={() => onRemoveSymbol(index)}
+                    showLabel={showLabels}
                   />
                 ))
               )}

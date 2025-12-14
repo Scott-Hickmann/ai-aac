@@ -2,7 +2,8 @@ import { genai, GEMINI_MODELS } from "./gemini";
 import { searchPictograms, getPictogramImageUrl } from "./pictograms";
 import { Symbol } from "@/types/symbol";
 
-const QUERIES_COUNT = 16;
+const QUERIES_COUNT = 40;
+const MAX_SYMBOLS_PER_QUERY = 3;
 
 interface SuggestQueriesParams {
   selectedWords: string[];
@@ -31,7 +32,7 @@ ${historyContext}
 
 ${currentContext}
 
-Suggère exactement 16 requêtes de mots clés permettant de trouver les pictogrammes qui seraient les plus susceptibles de venir ensuite ou d'être utiles pour compléter sa pensée.`;
+Suggère exactement ${QUERIES_COUNT} requêtes de différents mots clés susceptibles de venir à la suite des mots actuellement sélectionnés.`;
 }
 
 export async function suggestQueries({
@@ -41,6 +42,8 @@ export async function suggestQueries({
   const historyContext = buildHistoryContext(conversationHistory);
   const currentContext = buildCurrentContext(selectedWords);
   const prompt = buildPrompt(historyContext, currentContext);
+
+  console.log("[Gemini: suggest-queries]", prompt);
 
   const response = await genai.models.generateContent({
     model: GEMINI_MODELS.Easy,
@@ -62,7 +65,7 @@ export async function suggestQueries({
   });
 
   const content = response.text ?? "{}";
-  console.log("[Gemini: suggest-words]", content);
+  console.log("[Gemini: suggest-queries]", content);
 
   const parsed = JSON.parse(content);
   const queries: string[] = parsed.queries ?? [];
@@ -89,7 +92,7 @@ export function suggestSymbols(queries: string[]): Symbol[] {
   const symbols: Symbol[] = [];
 
   for (const query of queries) {
-    for (const symbol of searchSymbols(query, 5)) {
+    for (const symbol of searchSymbols(query, MAX_SYMBOLS_PER_QUERY)) {
       const pictogramId = parseInt(symbol.id.split("-")[0], 10);
       if (seen.has(pictogramId)) continue;
 

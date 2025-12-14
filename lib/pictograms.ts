@@ -115,18 +115,19 @@ export function searchPictogram(word: string): ArasaacPictogram | null {
 }
 
 /**
- * Search for multiple pictograms matching a word, ranked by relevance.
+ * Search for multiple pictograms matching a query, ranked by relevance.
  */
 export function searchPictograms(
-  word: string,
+  query: string,
   limit = 10
 ): ArasaacPictogram[] {
-  const normalizedWord = word.trim();
+  const normalizedWord = query.trim();
   if (!normalizedWord) return [];
 
   const results = miniSearch.search(normalizedWord, {
     fuzzy: normalizedWord.length <= 3 ? 0.1 : 0.2,
     prefix: true,
+    filter: (result) => result.score >= 1,
     boostDocument: (docId, term, storedFields) => {
       const keyword = (storedFields?.keyword as string)?.toLowerCase() ?? "";
       const searchTerm = normalizedWord.toLowerCase();
@@ -135,6 +136,9 @@ export function searchPictograms(
       return 1;
     },
   });
+
+  results.sort((a, b) => b.score - a.score);
+  console.log(`[MiniSearch: searchPictograms for "${query}"]`, results.map(r => r.id));
 
   // Deduplicate by pictogram ID (same pictogram may match multiple keywords)
   const seen = new Set<number>();
