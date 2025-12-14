@@ -1,4 +1,4 @@
-import { Volume2, Trash2 } from "lucide-react";
+import { Volume2, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ interface MessageBarProps {
   onRemoveSymbol: (index: number) => void;
   onSpeak: () => void;
   onClear: () => void;
+  isSpeaking?: boolean;
 }
 
 export function MessageBar({
@@ -17,6 +18,7 @@ export function MessageBar({
   onRemoveSymbol,
   onSpeak,
   onClear,
+  isSpeaking = false,
 }: MessageBarProps) {
   const hasSymbols = selectedSymbols.length > 0;
 
@@ -53,16 +55,22 @@ export function MessageBar({
           <div className="flex flex-col gap-2">
             <Button
               onClick={onSpeak}
-              disabled={!hasSymbols}
+              disabled={!hasSymbols || isSpeaking}
               size="lg"
               className="bg-emerald-600 text-white shadow-lg active:scale-95"
             >
-              <Volume2 className="w-5 h-5" />
-              <span className="hidden sm:inline">Parler</span>
+              {isSpeaking ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Volume2 className="w-5 h-5" />
+              )}
+              <span className="hidden sm:inline">
+                {isSpeaking ? "..." : "Parler"}
+              </span>
             </Button>
             <Button
               onClick={onClear}
-              disabled={!hasSymbols}
+              disabled={!hasSymbols || isSpeaking}
               variant="destructive"
               size="lg"
               className="shadow-lg active:scale-95"

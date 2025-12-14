@@ -27,6 +27,7 @@ export default function Home() {
     removeSymbol,
     clearSelection,
     speakSelection,
+    isSpeaking,
   } = useSelectedSymbols(selectionOptions);
 
   // Load initial starter symbols
@@ -49,6 +50,7 @@ export default function Home() {
         onRemoveSymbol={removeSymbol}
         onSpeak={speakSelection}
         onClear={clearSelection}
+        isSpeaking={isSpeaking}
       />
 
       <SymbolGrid

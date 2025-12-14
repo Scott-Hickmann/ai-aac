@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Symbol } from "@/types/symbol";
 
 interface UseSelectedSymbolsOptions {
@@ -9,6 +9,8 @@ interface UseSelectedSymbolsOptions {
 
 export function useSelectedSymbols(options?: UseSelectedSymbolsOptions) {
   const [selectedSymbols, setSelectedSymbols] = useState<Symbol[]>([]);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const addSymbol = useCallback(
     (symbol: Symbol) => {
@@ -42,12 +44,55 @@ export function useSelectedSymbols(options?: UseSelectedSymbolsOptions) {
     options?.onSelectionChange?.([]);
   }, [options]);
 
-  const speakSelection = useCallback(() => {
+  const speakSelection = useCallback(async () => {
     if (selectedSymbols.length === 0) return;
-    const text = selectedSymbols.map((s) => s.label).join(" ");
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    speechSynthesis.speak(utterance);
+
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    setIsSpeaking(true);
+
+    try {
+      const response = await fetch("/api/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          selectedWords: selectedSymbols.map((s) => s.label),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate speech");
+      }
+
+      // Create a blob from the streamed response
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Create and play the audio
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+
+      await audio.play();
+    } catch (error) {
+      console.error("Error speaking:", error);
+      setIsSpeaking(false);
+    }
   }, [selectedSymbols]);
 
   return {
@@ -56,5 +101,6 @@ export function useSelectedSymbols(options?: UseSelectedSymbolsOptions) {
     removeSymbol,
     clearSelection,
     speakSelection,
+    isSpeaking,
   };
 }
