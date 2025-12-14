@@ -31,34 +31,34 @@ ${conversationHistory.map((sentence: string, i: number) => `${i + 1}. "${sentenc
         : "L'utilisateur commence un nouveau message.";
 
     const response = await genai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lite",
       contents: `Tu aides avec un tableau de CAA (Communication Améliorée et Alternative) en français.
-          
-${historyContext}${currentContext}
 
-Basé sur le contexte de la conversation et les mots sélectionnés, suggère exactement 16 mots clés en français qui seraient les plus susceptibles de venir ensuite ou d'être utiles pour compléter sa pensée.
+${historyContext}
 
-Retourne UNIQUEMENT une liste JSON de 16 éléments simples en français, sans explications.`,
+${currentContext}
+
+Suggère exactement 16 pictogrammes qui seraient les plus susceptibles de venir ensuite ou d'être utiles pour compléter sa pensée.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "object",
+          properties: {
+            words: {
+              type: "array",
+              items: { type: "string" },
+              description: "Liste de 16 mots suggérés en français",
+            },
+          },
+          required: ["words"],
+        },
+      },
     });
 
-    // Parse the response
-    const content = response.text ?? "";
+    const content = response.text ?? "{}";
     console.log("[Gemini: suggest-words]", content);
-    let words: string[] = [];
-
-    try {
-      // Try to parse as JSON
-      const match = content.match(/\[[\s\S]*\]/);
-      if (match) {
-        words = JSON.parse(match[0]);
-      }
-    } catch {
-      // If parsing fails, try to extract words manually
-      const wordMatches = content.match(/"([^"]+)"/g);
-      if (wordMatches) {
-        words = wordMatches.map((w) => w.replace(/"/g, "")).slice(0, 16);
-      }
-    }
+    const parsed = JSON.parse(content);
+    const words: string[] = parsed.words ?? [];
 
     const symbols = wordsToSymbols(words);
 

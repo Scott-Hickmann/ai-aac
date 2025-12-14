@@ -57,7 +57,7 @@ export function SymbolGrid({
         <div className="grid grid-cols-4 gap-4">
           {symbols.map((symbol) => (
             <SymbolCard
-              key={symbol.id}
+              key={`${symbol.id}-${symbol.label}`}
               symbol={symbol}
               onClick={() => onSymbolClick(symbol)}
             />

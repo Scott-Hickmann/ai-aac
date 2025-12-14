@@ -1,6 +1,11 @@
 "use client";
 
-import { MessageBar, SymbolGrid, Footer } from "@/components/aac";
+import {
+  MessageBar,
+  SymbolGrid,
+  Footer,
+  ConfirmDialog,
+} from "@/components/aac";
 import { useSymbols } from "@/hooks/useSymbols";
 import { useSelectedSymbols } from "@/hooks/useSelectedSymbols";
 
@@ -13,6 +18,10 @@ export default function Home() {
     clearSelection,
     speakSelection,
     isSpeaking,
+    pendingSentence,
+    confirmSpeech,
+    rejectSpeech,
+    replaySpeech,
   } = useSelectedSymbols();
 
   const { symbols, loading, error, refetch } = useSymbols(
@@ -30,14 +39,24 @@ export default function Home() {
         isSpeaking={isSpeaking}
       />
 
-      <SymbolGrid
-        isStarterSymbols={selectedSymbols.length === 0}
-        symbols={symbols}
-        loading={loading}
-        error={error}
-        onSymbolClick={addSymbol}
-        onRefresh={refetch}
-      />
+      {pendingSentence ? (
+        <ConfirmDialog
+          sentence={pendingSentence}
+          onConfirm={confirmSpeech}
+          onReject={rejectSpeech}
+          onReplay={replaySpeech}
+          isReplaying={isSpeaking}
+        />
+      ) : (
+        <SymbolGrid
+          isStarterSymbols={selectedSymbols.length === 0}
+          symbols={symbols}
+          loading={loading}
+          error={error}
+          onSymbolClick={addSymbol}
+          onRefresh={refetch}
+        />
+      )}
 
       <Footer />
     </div>

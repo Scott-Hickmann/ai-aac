@@ -39,7 +39,7 @@ export function useSymbols(
 ) {
   const query = useQuery({
     // Only selectedWords in key - conversationHistory changes shouldn't trigger refetch
-    queryKey: ["suggestions", selectedWords],
+    queryKey: ["suggestions", selectedWords, conversationHistory],
     queryFn: () => fetchSuggestions(selectedWords, conversationHistory),
   });
 

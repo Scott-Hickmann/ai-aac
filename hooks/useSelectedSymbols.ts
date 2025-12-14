@@ -7,7 +7,9 @@ export function useSelectedSymbols() {
   const [selectedSymbols, setSelectedSymbols] = useState<Symbol[]>([]);
   const [conversationHistory, setConversationHistory] = useState<string[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [pendingSentence, setPendingSentence] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioBlobUrlRef = useRef<string | null>(null);
 
   const addSymbol = useCallback((symbol: Symbol) => {
     setSelectedSymbols((prev) => [
@@ -24,6 +26,53 @@ export function useSelectedSymbols() {
     setSelectedSymbols([]);
   }, []);
 
+  // Confirm the spoken sentence - add to history and clear selection
+  const confirmSpeech = useCallback(() => {
+    if (pendingSentence) {
+      setConversationHistory((prev) => [...prev, pendingSentence]);
+      setPendingSentence(null);
+      setSelectedSymbols([]);
+      // Clean up stored audio
+      if (audioBlobUrlRef.current) {
+        URL.revokeObjectURL(audioBlobUrlRef.current);
+        audioBlobUrlRef.current = null;
+      }
+    }
+  }, [pendingSentence]);
+
+  // Reject the spoken sentence - let user revise
+  const rejectSpeech = useCallback(() => {
+    setPendingSentence(null);
+    // Clean up stored audio
+    if (audioBlobUrlRef.current) {
+      URL.revokeObjectURL(audioBlobUrlRef.current);
+      audioBlobUrlRef.current = null;
+    }
+  }, []);
+
+  // Replay the stored audio
+  const replaySpeech = useCallback(() => {
+    if (!audioBlobUrlRef.current) return;
+
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+
+    setIsSpeaking(true);
+
+    const audio = new Audio(audioBlobUrlRef.current);
+    audioRef.current = audio;
+
+    audio.onended = () => setIsSpeaking(false);
+    audio.onerror = () => setIsSpeaking(false);
+
+    audio.play().catch((err) => {
+      console.error("Error replaying:", err);
+      setIsSpeaking(false);
+    });
+  }, []);
+
   const speakSelection = useCallback(async () => {
     if (selectedSymbols.length === 0) return;
 
@@ -33,10 +82,19 @@ export function useSelectedSymbols() {
       audioRef.current = null;
     }
 
+    // Clean up any previous stored audio
+    if (audioBlobUrlRef.current) {
+      URL.revokeObjectURL(audioBlobUrlRef.current);
+      audioBlobUrlRef.current = null;
+    }
+
     setIsSpeaking(true);
 
-    // Store the sentence to add to history after playback completes
+    // Store the sentence to show in confirmation
     let generatedSentence = selectedSymbols.map((s) => s.label).join(" ");
+
+    // Collect audio chunks for replay
+    const audioChunks: BlobPart[] = [];
 
     const cleanup = () => {
       setIsSpeaking(false);
@@ -47,9 +105,16 @@ export function useSelectedSymbols() {
     };
 
     const onPlaybackComplete = () => {
-      cleanup();
-      // Only add to conversation history after successful playback
-      setConversationHistory((prev) => [...prev, generatedSentence]);
+      setIsSpeaking(false);
+      if (audioRef.current) {
+        URL.revokeObjectURL(audioRef.current.src);
+        audioRef.current = null;
+      }
+      // Store the audio blob for replay
+      const blob = new Blob(audioChunks, { type: "audio/mpeg" });
+      audioBlobUrlRef.current = URL.createObjectURL(blob);
+      // Show confirmation dialog
+      setPendingSentence(generatedSentence);
     };
 
     try {
@@ -110,6 +175,9 @@ export function useSelectedSymbols() {
               return;
             }
 
+            // Store chunk for replay
+            audioChunks.push(value);
+
             // Wait for the buffer to be ready before appending
             if (sourceBuffer.updating) {
               await new Promise((resolve) =>
@@ -155,5 +223,9 @@ export function useSelectedSymbols() {
     clearSelection,
     speakSelection,
     isSpeaking,
+    pendingSentence,
+    confirmSpeech,
+    rejectSpeech,
+    replaySpeech,
   };
 }
