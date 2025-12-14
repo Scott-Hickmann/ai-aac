@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { CartesiaClient } from "@cartesia/cartesia-js";
+import { GEMINI_MODELS } from "@/lib/gemini";
 
 const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const cartesia = new CartesiaClient({ apiKey: process.env.CARTESIA_API_KEY! });
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Use Gemini to rephrase icons into a full sentence
     const geminiResponse = await genai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_MODELS.Medium,
       contents: `Tu es chargé de comprendre ce qu'un patient sans capacités de parole essaie de dire. Il utilise un tableau de CAA (Communication Améliorée et Alternative).
 
 Il a cliqué sur les icônes suivantes dans l'ordre: "${selectedWords.join(", ")}"
