@@ -83,6 +83,7 @@ export function searchSymbols(query: string, limit: number): Symbol[] {
       name: name,
       imageUrl: getPictogramImageUrl(pictogram._id),
       label: name,
+      pictogram,
     };
   });
 }

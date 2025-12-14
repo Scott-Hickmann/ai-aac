@@ -122,7 +122,7 @@ export function useSelectedSymbols() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          selectedWords: selectedSymbols.map((s) => s.label),
+          selectedSymbols,
         }),
       });
 

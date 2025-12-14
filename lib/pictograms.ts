@@ -1,17 +1,8 @@
 import MiniSearch from "minisearch";
 import aacPictograms from "./aac-pictograms.json";
-import { Symbol } from "@/types/symbol";
+import { Symbol, ArasaacPictogram } from "@/types/symbol";
 
-export interface ArasaacPictogram {
-  _id: number;
-  keywords: Array<{
-    keyword: string;
-    type: number;
-    plural?: string;
-  }>;
-  categories?: string[];
-  tags?: string[];
-}
+export type { ArasaacPictogram };
 
 const pictograms = aacPictograms as ArasaacPictogram[];
 
@@ -175,6 +166,7 @@ export function wordToSymbol(word: string): Symbol | null {
     name: pictogram.keywords?.[0]?.keyword || word,
     imageUrl: getPictogramImageUrl(pictogram._id),
     label: word,
+    pictogram,
   };
 }
 
