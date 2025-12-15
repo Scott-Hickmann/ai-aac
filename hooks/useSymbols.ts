@@ -16,7 +16,8 @@ async function fetchSuggestions(
     selectedSymbols.length === 0;
 
   const response = await fetch(
-    isStarterSymbols ? "/api/starter-symbols" : "/api/suggest",
+    // isStarterSymbols ? "/api/starter-symbols" : "/api/suggest",
+    "/api/suggest",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

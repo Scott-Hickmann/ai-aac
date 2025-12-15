@@ -10,12 +10,15 @@ interface SymbolCardProps {
 }
 
 export function SymbolCard({ symbol, onClick, showLabel = true }: SymbolCardProps) {
+  const isHighProbability = (symbol.probability ?? 0) > 0.001;
+  
   return (
     <Card
       onClick={onClick}
       className={cn(
         "cursor-pointer aspect-square p-0",
-        "shadow-md active:scale-95 transition-transform"
+        "shadow-md active:scale-95 transition-transform",
+        isHighProbability && "bg-green-50 border-green-500 border-2"
       )}
     >
       <CardContent className="h-full p-4 flex flex-col items-center justify-center gap-3">

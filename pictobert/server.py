@@ -68,7 +68,7 @@ def setup_model() -> None:
         raise FileNotFoundError(f"Tokenizer file not found at {tokenizer_path}")
 
     # Download and extract model
-    model_path = MODEL_DIR / "pictobert"
+    model_path = MODEL_DIR / "arasaac-pictobert-context"
     if not model_path.exists():
         raise FileNotFoundError(f"Model file not found at {model_path}")
 
@@ -126,7 +126,6 @@ def setup_model() -> None:
 class PredictRequest(BaseModel):
     """Request model for prediction."""
     selected_word_senses: list[str] = []
-    top_k: int = 20
 
 
 class PredictResponse(BaseModel):
@@ -183,11 +182,11 @@ async def predict(request: PredictRequest):
         filtered_probs = torch.index_select(all_probs[0, mask_idx, :], 0, valid_token_indices.to(device))
         filtered_vocab = mapped_vocab.take(valid_token_indices.numpy())
         
-        # Get top-k predictions from filtered set
-        top_k_probs, top_k_indices = torch.topk(filtered_probs, k=min(request.top_k, len(filtered_probs)))
+        # Get all predictions sorted from highest to lowest probability
+        sorted_probs, sorted_indices = torch.sort(filtered_probs, descending=True)
 
     predictions = []
-    for prob, idx in zip(top_k_probs.tolist(), top_k_indices.tolist()):
+    for prob, idx in zip(sorted_probs.tolist(), sorted_indices.tolist()):
         synset_id = filtered_vocab[idx]
         
         # Look up pictogram ID from dataframe using synset ID

@@ -15,5 +15,6 @@ export interface Symbol {
   label: string;
   imageUrl: string;
   pictogram: ArasaacPictogram;
+  probability?: number;
 }
 

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Use Gemini to rephrase icons into a full sentence
     const geminiResponse = await genai.models.generateContent({
-      model: GEMINI_MODELS.Medium,
+      model: GEMINI_MODELS.Easy,
       contents: `Tu es chargé de comprendre ce qu'un patient sans capacités de parole essaie de dire. Il utilise un tableau de CAA (Communication Améliorée et Alternative).
 
 Il a cliqué sur les icônes suivantes dans l'ordre: ${symbolsContext}

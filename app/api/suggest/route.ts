@@ -10,10 +10,6 @@ export async function POST(request: NextRequest) {
         conversationHistory?: string[];
       };
 
-    if (selectedSymbols.length === 0 && conversationHistory.length === 0) {
-      return NextResponse.json({ symbols: [] });
-    }
-
     console.log("[Suggest] Using PictoBERT");
     const symbols = await suggestSymbolsWithPictoBERT(selectedSymbols);
     return NextResponse.json({ symbols });

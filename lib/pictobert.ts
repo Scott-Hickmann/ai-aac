@@ -43,6 +43,7 @@ function predictionToSymbol(prediction: PictoBERTPrediction): Symbol | null {
     pictogram,
     wordSense: prediction.word_sense,
     label: wordSenseToLabel(prediction.word_sense),
+    probability: prediction.probability,
   };
 }
 
